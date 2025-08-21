@@ -183,12 +183,12 @@ def load_docx_from_github(github_raw_urls):
     return company_data
 
 def display_company_card(company_info):
-    """Display a beautiful card for each company"""
+    """Display a comprehensive card for each company with full content"""
     
     # Create an expandable card with company name and key metrics
     with st.expander(
         f"🏢 **{company_info['company_name']}** | 🔗 {company_info['total_links']} Links | 📝 {company_info['text_length']:,} chars", 
-        expanded=False
+        expanded=True  # Keep expanded to show full content by default
     ):
         
         # Header info
@@ -208,91 +208,86 @@ def display_company_card(company_info):
         st.markdown("### 📋 Document Summary")
         st.info(company_info['summary'])
         
-        # Links section
-        st.markdown(f"### 🔗 Extracted Links ({company_info['total_links']} total)")
+        # Links section - SHOW ALL LINKS
+        st.markdown(f"### 🔗 All Extracted Links ({company_info['total_links']} total)")
         
         if company_info['links']:
-            # Create tabs for better organization if many links
-            if len(company_info['links']) > 10:
-                tab1, tab2 = st.tabs(["📋 Links List", "🔍 Quick View"])
+            # Display all links in a clean format
+            for i, link in enumerate(company_info['links'], 1):
+                # Extract domain for better display
+                domain = re.search(r'https?://(?:www\.)?([^/]+)', link)
+                domain_name = domain.group(1) if domain else "Unknown"
                 
-                with tab1:
-                    for i, link in enumerate(company_info['links'], 1):
-                        # Extract domain for better display
-                        domain = re.search(r'https?://(?:www\.)?([^/]+)', link)
-                        domain_name = domain.group(1) if domain else "Unknown"
-                        
-                        st.markdown(f"**{i}.** [{domain_name}]({link})")
-                        
-                with tab2:
-                    # Show links in a more compact format
-                    for i, link in enumerate(company_info['links'], 1):
-                        st.markdown(f"{i}. {link}")
-            else:
-                for i, link in enumerate(company_info['links'], 1):
-                    # Extract domain for better display
-                    domain = re.search(r'https?://(?:www\.)?([^/]+)', link)
-                    domain_name = domain.group(1) if domain else "Unknown"
-                    
-                    col1, col2 = st.columns([3, 1])
-                    with col1:
-                        st.markdown(f"**{i}.** [{domain_name}]({link})")
-                    with col2:
-                        if st.button("🔗 Open", key=f"open_{company_info['filename']}_{i}"):
-                            st.markdown(f"[Open in new tab]({link})")
+                # Show full link with index
+                st.markdown(f"**{i}.** [{domain_name}]({link})")
+                st.caption(f"Full URL: {link}")
+                
+                # Add some spacing every 5 links for readability
+                if i % 5 == 0 and i < len(company_info['links']):
+                    st.markdown("---")
         else:
             st.warning("No links found")
         
-        # Text content section
-        st.markdown("### 📖 Extracted Text Content")
+        st.markdown("---")
+        
+        # Text content section - SHOW COMPLETE TEXT
+        st.markdown("### 📖 Complete Extracted Text Content")
         if company_info['text_content']:
-            # Clean display of text content
-            text_content = company_info['text_content']
-            
             # Show character count
-            st.caption(f"📊 {len(text_content):,} characters")
+            st.caption(f"📊 {len(company_info['text_content']):,} characters total")
             
-            # Text content in expandable section if long
-            if len(text_content) > 1000:
-                with st.expander("📖 Click to read full content", expanded=False):
-                    st.markdown(text_content)
-                
-                # Show preview
-                st.markdown("**Preview (first 500 characters):**")
-                st.text_area(
-                    "Content Preview",
-                    value=text_content[:500] + "..." if len(text_content) > 500 else text_content,
-                    height=150,
-                    disabled=True,
-                    label_visibility="collapsed"
-                )
-            else:
-                st.markdown(text_content)
+            # Display the COMPLETE text content
+            st.markdown("#### Full Content:")
+            
+            # Use a text area for better readability of long content
+            st.text_area(
+                "Complete Text Content",
+                value=company_info['text_content'],
+                height=400,  # Larger height to show more content
+                disabled=True,
+                label_visibility="collapsed"
+            )
+            
+            # Also show as markdown for better formatting
+            st.markdown("#### Formatted Content:")
+            st.markdown(company_info['text_content'])
+            
         else:
             st.warning("No text content found")
         
         # Download section
         st.markdown("---")
+        st.markdown("### 💾 Download Options")
         col1, col2, col3 = st.columns(3)
         with col1:
             if 'github_url' in company_info:
-                st.markdown(f"[📥 Download Original]({company_info['github_url']})")
+                st.markdown(f"[📥 Download Original DOCX]({company_info['github_url']})")
         with col2:
-            # Copy links button
-            links_text = '\n'.join([f"{i+1}. {link}" for i, link in enumerate(company_info['links'])])
+            # Download all links as text file
+            links_text = f"# {company_info['company_name']} - Extracted Links\n\n"
+            for i, link in enumerate(company_info['links'], 1):
+                links_text += f"{i}. {link}\n"
+            
             st.download_button(
-                "📋 Copy All Links",
+                "📋 Download All Links",
                 data=links_text,
                 file_name=f"{company_info['company_name']}_links.txt",
                 mime="text/plain",
                 key=f"copy_links_{company_info['filename']}"
             )
         with col3:
-            # Copy text content button
+            # Download complete text content
+            full_content = f"# {company_info['company_name']} - Complete Text Content\n\n"
+            full_content += f"Extraction Date: {company_info.get('extraction_date', 'Unknown')}\n"
+            full_content += f"Total Links: {company_info['total_links']}\n"
+            full_content += f"Text Length: {company_info['text_length']:,} characters\n\n"
+            full_content += "## Complete Text:\n\n"
+            full_content += company_info['text_content']
+            
             st.download_button(
-                "📄 Copy Text Content",
-                data=company_info['text_content'],
-                file_name=f"{company_info['company_name']}_content.txt",
+                "📄 Download Complete Text",
+                data=full_content,
+                file_name=f"{company_info['company_name']}_complete_content.txt",
                 mime="text/plain",
                 key=f"copy_text_{company_info['filename']}"
             )
@@ -343,7 +338,7 @@ def main():
     # Data source selection
     data_source = st.sidebar.selectbox(
         "Choose data source:",
-        ["Sample Data (Demo)", "GitHub Repository", "Local Directory"]
+        ["GitHub Repository", "Sample Data (Demo)", "Local Directory"]
     )
     
     company_data = []
@@ -354,7 +349,7 @@ def main():
         # GitHub repository URL input
         repo_url = st.sidebar.text_input(
             "GitHub Repository URL:",
-            placeholder="https://github.com/username/repo",
+            value="https://github.com/Abdulmasood14/news_ai_mode",
             help="Enter the GitHub repository URL containing DOCX files"
         )
         
