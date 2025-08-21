@@ -147,9 +147,16 @@ def load_docx_from_github(github_raw_urls):
             filename = url.split('/')[-1]
             company_name = extract_company_name_from_filename(filename)
             
-            # Download file
-            response = requests.get(url)
+            st.write(f"🔄 Processing {filename}...")
+            
+            # Download file with proper headers
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
+            
+            st.write(f"✅ Downloaded {filename} ({len(response.content)} bytes)")
             
             # Create BytesIO object
             docx_file = BytesIO(response.content)
@@ -163,9 +170,15 @@ def load_docx_from_github(github_raw_urls):
                     'github_url': url,
                     **data
                 })
+                st.success(f"✅ Successfully processed {company_name}")
+            else:
+                st.warning(f"⚠️ No data extracted from {filename}")
                 
+        except requests.exceptions.RequestException as e:
+            st.error(f"❌ Network error loading {filename}: {str(e)}")
         except Exception as e:
-            st.error(f"Error loading {url}: {str(e)}")
+            st.error(f"❌ Error processing {filename}: {str(e)}")
+            st.write(f"URL: {url}")
     
     return company_data
 
@@ -356,22 +369,43 @@ def main():
             # Convert GitHub URL to raw URLs
             if "github.com" in repo_url:
                 # Convert to raw.githubusercontent.com format
-                raw_base = repo_url.replace("github.com", "raw.githubusercontent.com")
-                if "/tree/" in raw_base:
-                    raw_base = raw_base.replace("/tree/", "/")
-                elif not raw_base.endswith("/main") and not raw_base.endswith("/master"):
-                    if not raw_base.endswith("/"):
-                        raw_base += "/"
-                    raw_base += "main/"
+                if "/tree/" in repo_url:
+                    raw_base = repo_url.replace("github.com", "raw.githubusercontent.com").replace("/tree/", "/")
+                else:
+                    # Handle direct repo URL
+                    raw_base = repo_url.replace("github.com", "raw.githubusercontent.com")
+                    if not raw_base.endswith("/main") and not raw_base.endswith("/master"):
+                        if not raw_base.endswith("/"):
+                            raw_base += "/"
+                        raw_base += "main/"
                 
                 if not raw_base.endswith("/"):
                     raw_base += "/"
                 
-                st.sidebar.info("📝 List your DOCX filenames below")
+                st.sidebar.info("📝 List your DOCX filenames below (auto-filled)")
+                
+                # Auto-fill with all your filenames
+                default_filenames = """bajaj-auto_complete_20250819_172757.docx
+bajfinspv_complete_20250819_172425.docx
+bajfinance_complete_20250819_173439.docx
+coalindia_complete_20250819_173259.docx
+drreddy_complete_20250819_173118.docx
+hdfclife_complete_20250819_172108.docx
+itc_complete_20250819_172939.docx
+lt_complete_20250819_173935.docx
+maruti_complete_20250819_173801.docx
+ntpc_complete_20250819_171629.docx
+ongc_complete_20250819_173618.docx
+tataconsum_complete_20250819_172249.docx
+tcs_complete_20250819_172615.docx
+techm_complete_20250819_171759.docx
+titan_complete_20250819_171455.docx
+trent_complete_20250819_171936.docx"""
                 
                 docx_filenames = st.sidebar.text_area(
                     "DOCX Filenames (one per line):",
-                    value="bajaj-auto_complete_20250819_172757.docx",
+                    value=default_filenames,
+                    height=200,
                     help="List your DOCX filenames, one per line"
                 )
                 
@@ -379,8 +413,18 @@ def main():
                     filenames = [f.strip() for f in docx_filenames.split('\n') if f.strip()]
                     github_urls = [f"{raw_base}{data_folder}{filename}" for filename in filenames]
                     
-                    with st.spinner("🔄 Loading data from GitHub..."):
-                        company_data = load_docx_from_github(github_urls)
+                    # Show the URLs that will be used
+                    st.sidebar.write("🔗 URLs to be processed:")
+                    for i, url in enumerate(github_urls[:3], 1):
+                        st.sidebar.caption(f"{i}. {url}")
+                    if len(github_urls) > 3:
+                        st.sidebar.caption(f"... and {len(github_urls)-3} more")
+                    
+                    if st.sidebar.button("🚀 Load All Files"):
+                        with st.spinner("🔄 Loading data from GitHub..."):
+                            company_data = load_docx_from_github(github_urls)
+            else:
+                st.sidebar.error("❌ Invalid GitHub URL format")
     
     elif data_source == "Local Directory":
         directory_path = st.sidebar.text_input(
