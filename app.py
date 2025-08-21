@@ -396,35 +396,152 @@ def main():
             st.sidebar.error("❌ Directory not found")
     
     else:  # Sample Data
-        st.info("🚀 Showing sample data based on your Bajaj Auto DOCX format")
+        st.info("🚀 Showing sample data with all your companies from GitHub repository")
         
-        # Sample data based on your actual Bajaj Auto example
-        sample_content = """**Summary:** Total links: 19, Text length: 2,306 characters, Date: 2025-08-19 17:27:57
-
-# Extracted Links
-
-Link 1:
-https://www.storyboard18.com/brand-makers/bajaj-auto-sales-surge-8-in-may-2025-exports-drive-growth-68329.htm
-
-Link 2:
-https://www.nseindia.com/get-quotes/equity?symbol=BAJAJ-AUTO
-
-Link 3:
-https://ackodrive.com/news/auto-sales-may-2025-bajaj-s-export-continues-to-drive-growth/
-
-# Extracted Text Content
-
-Bajaj Auto reported an 8% increase in total sales (including exports) in May 2025 compared to May 2024, reaching 3,84,621 units.
-
-Exports were a key driver of this growth, surging by 22% year-on-year to 1,58,888 vehicles in May 2025."""
-        
-        sample_data = extract_data_from_docx_content(sample_content)
-        if sample_data:
-            company_data = [{
-                'company_name': 'Bajaj Auto',
+        # All your companies with sample data
+        companies_sample = [
+            {
                 'filename': 'bajaj-auto_complete_20250819_172757.docx',
-                **sample_data
-            }]
+                'company_name': 'Bajaj Auto',
+                'links': 19,
+                'text_length': 2306,
+                'content': 'Bajaj Auto reported an 8% increase in total sales (including exports) in May 2025 compared to May 2024, reaching 3,84,621 units. Exports were a key driver of this growth, surging by 22% year-on-year to 1,58,888 vehicles in May 2025.'
+            },
+            {
+                'filename': 'bajfinspv_complete_20250819_172425.docx',
+                'company_name': 'Bajfinspv',
+                'links': 15,
+                'text_length': 1850,
+                'content': 'Bajaj Finserv reported strong quarterly results with significant growth in assets under management and digital lending portfolio expansion across multiple financial services segments.'
+            },
+            {
+                'filename': 'bajfinance_complete_20250819_173439.docx',
+                'company_name': 'Bajfinance',
+                'links': 22,
+                'text_length': 2890,
+                'content': 'Bajaj Finance continues to dominate the NBFC sector with robust loan growth, improved asset quality metrics, and strategic expansion in rural and semi-urban markets.'
+            },
+            {
+                'filename': 'coalindia_complete_20250819_173259.docx',
+                'company_name': 'Coalindia',
+                'links': 18,
+                'text_length': 2156,
+                'content': 'Coal India Limited maintains its position as the world largest coal producer, focusing on sustainable mining practices and renewable energy initiatives.'
+            },
+            {
+                'filename': 'drreddy_complete_20250819_173118.docx',
+                'company_name': 'Drreddy',
+                'links': 16,
+                'text_length': 1967,
+                'content': 'Dr. Reddy Laboratories announced strong performance in both domestic and international markets, with several new drug approvals and pipeline expansions.'
+            },
+            {
+                'filename': 'hdfclife_complete_20250819_172108.docx',
+                'company_name': 'Hdfclife',
+                'links': 14,
+                'text_length': 1745,
+                'content': 'HDFC Life Insurance continues to grow its market share through innovative product offerings and digital transformation initiatives in the life insurance sector.'
+            },
+            {
+                'filename': 'itc_complete_20250819_172939.docx',
+                'company_name': 'Itc',
+                'links': 20,
+                'text_length': 2534,
+                'content': 'ITC Limited diversifies its portfolio beyond tobacco, showing strong growth in FMCG, hotels, and agri-business segments with sustainability focus.'
+            },
+            {
+                'filename': 'lt_complete_20250819_173935.docx',
+                'company_name': 'Lt',
+                'links': 17,
+                'text_length': 2098,
+                'content': 'Larsen & Toubro demonstrates strong execution capabilities across infrastructure, defense, and technology sectors with significant order book growth.'
+            },
+            {
+                'filename': 'maruti_complete_20250819_173801.docx',
+                'company_name': 'Maruti',
+                'links': 21,
+                'text_length': 2678,
+                'content': 'Maruti Suzuki maintains its leadership in the Indian automobile market with strong sales performance and expansion into electric vehicle segment.'
+            },
+            {
+                'filename': 'ntpc_complete_20250819_171629.docx',
+                'company_name': 'Ntpc',
+                'links': 13,
+                'text_length': 1623,
+                'content': 'NTPC Limited continues its transition towards renewable energy while maintaining its position as India largest power generation company.'
+            },
+            {
+                'filename': 'ongc_complete_20250819_173618.docx',
+                'company_name': 'Ongc',
+                'links': 19,
+                'text_length': 2289,
+                'content': 'Oil and Natural Gas Corporation explores new opportunities in clean energy while optimizing production from existing oil and gas fields.'
+            },
+            {
+                'filename': 'tataconsum_complete_20250819_172249.docx',
+                'company_name': 'Tataconsum',
+                'links': 12,
+                'text_length': 1456,
+                'content': 'Tata Consumer Products expands its portfolio through strategic acquisitions and innovation in health and wellness beverage categories.'
+            },
+            {
+                'filename': 'tcs_complete_20250819_172615.docx',
+                'company_name': 'Tcs',
+                'links': 25,
+                'text_length': 3124,
+                'content': 'Tata Consultancy Services maintains its leadership in IT services with strong growth in digital transformation and cloud migration services.'
+            },
+            {
+                'filename': 'techm_complete_20250819_171759.docx',
+                'company_name': 'Techm',
+                'links': 16,
+                'text_length': 1987,
+                'content': 'Tech Mahindra focuses on 5G, IoT, and digital transformation solutions while expanding its presence in emerging technology markets.'
+            },
+            {
+                'filename': 'titan_complete_20250819_171455.docx',
+                'company_name': 'Titan',
+                'links': 18,
+                'text_length': 2234,
+                'content': 'Titan Company continues to dominate the jewelry and watches market with strong brand presence and expansion in wedding and fashion jewelry.'
+            },
+            {
+                'filename': 'trent_complete_20250819_171936.docx',
+                'company_name': 'Trent',
+                'links': 14,
+                'text_length': 1678,
+                'content': 'Trent Limited shows robust growth in retail fashion with successful expansion of Westside and Zudio store formats across India.'
+            }
+        ]
+        
+        # Convert to proper format
+        company_data = []
+        for comp in companies_sample:
+            # Create sample links
+            sample_links = [
+                f"https://economictimes.com/{comp['company_name'].lower()}-news-analysis",
+                f"https://moneycontrol.com/stocks/{comp['company_name'].lower()}-share-price",
+                f"https://nseindia.com/get-quotes/equity?symbol={comp['company_name'].upper()}",
+                f"https://business-standard.com/topic/{comp['company_name'].lower()}",
+                f"https://financialexpress.com/market/stock/{comp['company_name'].lower()}"
+            ]
+            
+            # Add more links to match the count
+            while len(sample_links) < comp['links']:
+                sample_links.append(f"https://example-news-{len(sample_links)+1}.com/{comp['company_name'].lower()}")
+            
+            company_data.append({
+                'company_name': comp['company_name'],
+                'filename': comp['filename'],
+                'summary': f"Total links: {comp['links']}, Text length: {comp['text_length']:,} characters, Date: 2025-08-19 17:27:57",
+                'extraction_date': "2025-08-19 17:27:57",
+                'links': sample_links[:comp['links']],
+                'text_content': comp['content'],
+                'total_links': comp['links'],
+                'total_links_from_summary': comp['links'],
+                'text_length': len(comp['content']),
+                'text_length_from_summary': comp['text_length']
+            })
     
     # Main content
     if company_data:
